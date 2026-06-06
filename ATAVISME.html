@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Atavisme</title>
+    <style>
+        /* Desain Modern & Menarik */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 20px; }
+        
+        .simulation-container {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+            border-top: 8px solid #6c5ce7;
+        }
+
+        h2 { color: #2d3436; margin-top: 0; text-align: center; }
+        
+        .controls { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
+        
+        .control-group { background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #e9ecef; }
+        
+        label { display: block; font-weight: 600; color: #495057; margin-bottom: 8px; }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        select:focus { border-color: #6c5ce7; outline: none; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        
+        th, td { 
+            border: 1px solid #edf2f7; 
+            padding: 10px 5px; 
+            text-align: center; 
+            font-size: 14px;
+        }
+        
+        th { background-color: #f8f9fa; color: #333; }
+
+        .phenotype-tag {
+            display: block;
+            padding: 4px 6px;
+            border-radius: 6px;
+            font-size: 11px;
+            margin-top: 5px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* Palet Warna Menarik */
+        .walnut { background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
+        .rose { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .pea { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .single { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+        .result-box { margin-top: 25px; padding-top: 20px; border-top: 2px dashed #edf2f7; }
+        .result-box h3 { color: #6c5ce7; margin-bottom: 10px; }
+        ul { list-style: none; padding: 0; }
+        li { padding: 5px 0; border-bottom: 1px solid #f8f9fa; }
+    </style>
+</head>
+<body>
+
+<div class="simulation-container">
+    <h2>🎮 Simulator Atavisme</h2>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label>Induk 1 (Jantan):</label>
+            <select id="p1" onchange="updateSimulasi()">
+                <option value="RRyy">Rose (RRyy)</option>
+                <option value="rrYY">Pea (rrYY)</option>
+                <option value="RrYy" selected>Walnut (RrYy)</option>
+                <option value="rryy">Single (rryy)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Induk 2 (Betina):</label>
+            <select id="p2" onchange="updateSimulasi()">
+                <option value="RRyy">Rose (RRyy)</option>
+                <option value="rrYY">Pea (rrYY)</option>
+                <option value="RrYy" selected>Walnut (RrYy)</option>
+                <option value="rryy">Single (rryy)</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="punnett-table"></div>
+    <div id="summary" class="result-box"></div>
+</div>
+
+<script>
+function getGamet(genotype) {
+    let g1 = [genotype[0], genotype[1]];
+    let g2 = [genotype[2], genotype[3]];
+    let res = [];
+    for (let a of g1) {
+        for (let b of g2) {
+            let gamet = a + b;
+            if (!res.includes(gamet)) res.push(gamet);
+        }
+    }
+    return res;
+}
+
+function getPhenotype(geno) {
+    let hasR = geno.includes('R');
+    let hasY = geno.includes('Y');
+    if (hasR && hasY) return { name: 'Walnut', class: 'walnut' };
+    if (hasR) return { name: 'Rose', class: 'rose' };
+    if (hasY) return { name: 'Pea', class: 'pea' };
+    return { name: 'Single', class: 'single' };
+}
+
+function updateSimulasi() {
+    let p1 = document.getElementById('p1').value;
+    let p2 = document.getElementById('p2').value;
+    let gamet1 = getGamet(p1);
+    let gamet2 = getGamet(p2);
+
+    let html = `<table><tr><th>♂ \ ♀</th>`;
+    gamet2.forEach(g => { html += `<th>${g}</th>`; });
+    html += `</tr>`;
+
+    let counts = { Walnut: 0, Rose: 0, Pea: 0, Single: 0 };
+    let total = 0;
+
+    gamet1.forEach(g1 => {
+        html += `<tr><td style="font-weight:bold; background:#f8f9fa;">${g1}</td>`;
+        gamet2.forEach(g2 => {
+            let offspring = [g1[0], g2[0]].sort().join('') + [g1[1], g2[1]].sort().join('');
+            let pheno = getPhenotype(offspring);
+            counts[pheno.name]++;
+            total++;
+            html += `<td>${offspring}<br><span class="phenotype-tag ${pheno.class}">${pheno.name}</span></td>`;
+        });
+        html += `</tr>`;
+    });
+    html += `</table>`;
+
+    document.getElementById('punnett-table').innerHTML = html;
+
+    let summaryHtml = `<h3>📊 Hasil Persilangan:</h3><ul>`;
+    for (let p in counts) {
+        if (counts[p] > 0) {
+            let percent = ((counts[p] / total) * 100).toFixed(1);
+            summaryHtml += `<li><strong>${p}:</strong> ${counts[p]} (${percent}%)</li>`;
+        }
+    }
+    summaryHtml += `</ul>`;
+    document.getElementById('summary').innerHTML = summaryHtml;
+}
+
+updateSimulasi();
+</script>
+
+</body>
+</html>
